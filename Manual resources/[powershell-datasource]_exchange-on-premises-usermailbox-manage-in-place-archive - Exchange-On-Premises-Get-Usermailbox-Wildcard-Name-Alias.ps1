@@ -84,20 +84,14 @@ try {
     $mailboxes = Get-Mailbox @getMailboxesSplatParams | Select-Object -Property $propertiesToSelect
     Write-Information "Queried user mailboxes that match filter [$($filter)]. Result count: $(($mailboxes | Measure-Object).Count)"
 
-    if (($mailboxes | Measure-Object).count -gt 0) {
-        foreach ($mailbox in $mailboxes) {
-            $archiveStatus = 'Enabled'
-            if($mailbox.ArchiveGuid -eq '00000000-0000-0000-0000-000000000000'){
-                $archiveStatus = 'Disabled'
-            }            
-        }
-    }
-
     # Sort and send results to HelloID
     $actionMessage = "sending results to HelloID"        
     $mailboxes | Sort-Object -Property DisplayName | ForEach-Object {
+        $archiveStatus = 'Enabled'
+        if ($_.ArchiveGuid -eq '00000000-0000-0000-0000-000000000000') {
+            $archiveStatus = 'Disabled'
+        }
         $_.ArchiveStatus = $archiveStatus
-        # Set mailDomain and mailPrefix properties
         Write-Output $_
     }       
 }
