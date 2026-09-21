@@ -1,61 +1,98 @@
-<!-- Description -->
+# HelloID-Conn-SA-Full-Exchange-On-Premises-Usermailbox-Manage-In-Place-Archive
+
+| :information_source: Information                                                                                                                                                                                                                                                                                                                                                          |
+| :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| This repository contains the connector and configuration code only. The implementer is responsible for acquiring the connection details such as username, password, certificate, etc. You might even need to sign a contract or agreement with the supplier before implementing this connector. Please contact the client's application manager to coordinate the connector requirements. |
+
 ## Description
-This HelloID Service Automation Delegated Form provides the functionality enable or disable in-place-archive on a mailbox.
 
- 1. Enter a name to lookup the mailbox.
- 2. The result will show you a list of matching mailboxes. You will need select to correct one.
- 3. From the available mailbox, select the one for which you want to change the in-place-archive status.
+_HelloID-Conn-SA-Full-Exchange-On-Premises-Usermailbox-Manage-In-Place-Archive_ is a template designed for use with HelloID Service Automation (SA) Delegated Forms. It can be imported into HelloID and customized according to your requirements.
 
-## Versioning
-| Version | Description | Date |
-| - | - | - |
-| 1.0.0   | Initial release | 2023/08/18  |
+By using this delegated form, you can manage in-place archive settings for Exchange On-Premises user mailboxes. The following options are available:
 
-<!-- TABLE OF CONTENTS -->
-## Table of Contents
-* [Description](#description)
-* [All-in-one PowerShell setup script](#all-in-one-powershell-setup-script)
-  * [Getting started](#getting-started)
-* [Post-setup configuration](#post-setup-configuration)
-* [Manual resources](#manual-resources)
+1.  Search for mailboxes by entering a name, SamAccountName, alias, or primary SMTP address
+2.  Select the desired mailbox from the search results grid
+3.  Enable or disable the in-place archive for the selected mailbox
+4.  The in-place archive status is updated in Exchange On-Premises
+5.  Audit logs are generated for all operations including connection, updates, and disconnection
 
+## Getting started
 
-## All-in-one PowerShell setup script
-The PowerShell script "createform.ps1" contains a complete PowerShell script using the HelloID API to create the complete Form including user defined variables, tasks and data sources.
+### Requirements
 
- _Please note that this script asumes none of the required resources do exists within HelloID. The script does not contain versioning or source control_
+- **Exchange On-Premises Server**:<br>
+  A functional Exchange On-Premises server with remote PowerShell access enabled. The connector uses remote PowerShell sessions to connect and manage mailboxes.
+- **Administrative Credentials**:<br>
+  Valid administrative credentials with permissions to manage mailboxes and enable/disable in-place archives in Exchange On-Premises.
+- **Network Connectivity**:<br>
+  The HelloID agent must have network connectivity to the Exchange server URI (typically https://exchange-server.domain.com/PowerShell).
+- **PowerShell Remoting**:<br>
+  PowerShell remoting must be enabled on the Exchange server, and the Microsoft.Exchange configuration must be accessible.
+- **TLS 1.2 Support**:<br>
+  The environment must support TLS 1.2 protocol for secure communication with Exchange servers.
 
+### Connection settings
 
-### Getting started
-Please follow the documentation steps on [HelloID Docs](https://docs.helloid.com/hc/en-us/articles/360017556559-Service-automation-GitHub-resources) in order to setup and run the All-in one Powershell Script in your own environment.
+The following user-defined variables are used by the connector.
 
+| Setting               | Description                                                                          | Mandatory |
+| --------------------- | ------------------------------------------------------------------------------------ | --------- |
+| ExchangeConnectionUri | The URI to the Exchange server (e.g., https://exchange-server.domain.com/PowerShell) | Yes       |
+| ExchangeAdminUsername | The username for the Exchange administrator account                                  | Yes       |
+| ExchangeAdminPassword | The password for the Exchange administrator account                                  | Yes       |
 
-## Post-setup configuration
-After the all-in-one PowerShell script has run and created all the required resources. The following items need to be configured according to your own environment
- 1. Update the following [user defined variables](https://docs.helloid.com/hc/en-us/articles/360014169933-How-to-Create-and-Manage-User-Defined-Variables)
-<table>
-  <tr><td><strong>Variable name</strong></td><td><strong>Example value</strong></td><td><strong>Description</strong></td></tr>
-  <tr><td>ExchangeConnectionUri</td><td>********</td><td>Exchange server URI</td></tr>
-  <tr><td>ExchangeAdminUsername</td><td>domain/user</td><td>Exchange server admin account</td></tr>
-  <tr><td>ExchangeAdminPassword</td><td>********</td><td>Exchange server admin password</td></tr>
-  <tr><td>ExchangeSearchOU</td><td>domain.local/accounts/users</td><td>Active Directory Organizational Unit</td></tr>
-  
-</table>
+## Remarks
 
-## Manual resources
-This Delegated Form uses the following resources in order to run
+### Archive Status Detection
 
-### Powershell data source '[powershell-datasource]_Exchange-mailbox-wildcard-change-in-place-archive-status'
-This Powershell data source runs a query to search for the mailbox.
+- Archive status is determined by checking the ArchiveGuid property. If ArchiveGuid equals '00000000-0000-0000-0000-000000000000', the archive is disabled; otherwise, it is enabled.
 
-### Powershell data source '[powershell-datasource]_Exchange-mailbox-change-in-place-archive-status'
-This Powershell data source returns the in-place-archive status of the selected mailbox.
+### Certificate Validation
 
-### Delegated form task '[task]_Exchange on-premise - Manage In-Place Archive'
-This delegated form task enables or disables the in-place-archive status.
+- The connector properly validates SSL certificates by setting SkipCACheck, SkipCNCheck, and SkipRevocationCheck to false. Ensure that valid certificates are configured on the Exchange server.
+
+### Authentication Method
+
+- The connector uses 'Default' authentication method for broader compatibility with different Exchange configurations. Adjust the authentication method in the session parameters if your environment requires a specific method (e.g., Kerberos, Basic).
+
+### Command Import Optimization
+
+- Only the required Exchange cmdlets (Enable-Mailbox, Disable-Mailbox) are imported during the session to reduce memory usage and improve performance.
+
+### Wildcard Search Support
+
+- The search functionality supports wildcard character `*` to retrieve all user mailboxes. Users can search by Name, SamAccountName, Alias, or PrimarySmtpAddress.
+
+## Development resources
+
+### Datasources
+
+The following datasources are used by the connector:
+
+| Datasource                                                                                                              | Description                                                                                                                                                                                                                            |
+| ----------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| exchange-on-premises-usermailbox-manage-in-place-archive - Exchange-On-Premises-Get-Usermailbox-Wildcard-Name-Alias     | Queries Exchange to search for user mailboxes matching the search criteria (Name, SamAccountName, Alias, PrimarySmtpAddress). Returns mailbox details including DisplayName, PrimarySmtpAddress, UserPrincipalName, and ArchiveStatus. |
+| exchange-on-premises-usermailbox-manage-in-place-archive - Exchange-On-Premises-Get-Usermailbox-In-Place-Archive-Status | Returns the current in-place archive status (enabled/disabled) for the selected mailbox based on the ArchiveStatus property.                                                                                                           |
+
+### Tasks
+
+| Task                                                         | Description                                                                                                                                                                      |
+| ------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Exchange On-Premises - Usermailbox - Manage In-Place Archive | Enables or disables the in-place archive for the selected user mailbox using Enable-Mailbox or Disable-Mailbox cmdlets. Includes comprehensive audit logging for all operations. |
+
+### API documentation
+
+- [Connect to Exchange servers using remote PowerShell](https://learn.microsoft.com/en-us/powershell/exchange/connect-to-exchange-servers-using-remote-powershell)
+- [Get-Mailbox](https://learn.microsoft.com/en-us/powershell/module/exchange/get-mailbox)
+- [Enable-Mailbox](https://learn.microsoft.com/en-us/powershell/module/exchange/enable-mailbox)
+- [Disable-Mailbox](https://learn.microsoft.com/en-us/powershell/module/exchange/disable-mailbox)
+- [Remove-PSSession](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/remove-pssession)
 
 ## Getting help
-_If you need help, feel free to ask questions on our [TODO-forum](https://forum.helloid.com/forum/helloid-connectors/service-automation/0000-helloid-sa-exchange-on-premises-manage-inplacearchive)_
 
-## HelloID Docs
+> :bulb: **Tip:**  
+> _For more information on Delegated Forms, please refer to our [documentation](https://docs.helloid.com/en/service-automation/delegated-forms.html) pages_.
+
+## HelloID docs
+
 The official HelloID documentation can be found at: https://docs.helloid.com/
