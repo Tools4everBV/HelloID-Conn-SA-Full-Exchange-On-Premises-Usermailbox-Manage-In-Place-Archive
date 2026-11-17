@@ -3,7 +3,7 @@ $mailbox = $form.selectedmailbox
 $mailboxMailPrefix = $form.mailPrefix
 $mailboxMailDomain = $form.mailDomain.id
 $mailboxAddedEmailAddress = "$($form.mailPrefix)@$($mailboxMailDomain)"
-$blnSetInPlaceArchive = [System.Convert]::ToBoolean($form.checkboxArchive)
+$blnSetInPlaceArchive = if ([string]::IsNullOrWhiteSpace($form.checkboxArchive)) { $false } else { [System.Convert]::ToBoolean($form.checkboxArchive) }
 
 # Global variables
 # Outcommented as these are set from Global Variables
